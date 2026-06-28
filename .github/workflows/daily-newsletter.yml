@@ -1,0 +1,59 @@
+name: Daily AI Newsletter
+
+on:
+  schedule:
+    - cron: '0 9 * * *'  # 09:00 UTC daily
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  newsletter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    env:
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+      BEEHIIV_API_KEY: ${{ secrets.BEEHIIV_API_KEY }}
+      PUBLICATION_ID: ${{ secrets.PUBLICATION_ID }}
+      POLLINATIONS_KEY: ${{ secrets.POLLINATIONS_KEY }}
+      DATABASE_PATH: newsletter.db
+      AUTO_PUBLISH: true
+      DRY_RUN: false
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run newsletter pipeline
+        run: uv run python -m app.main
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-logs
+          path: logs/
+          retention-days: 30
+
+      - name: Upload database
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-database
+          path: newsletter.db
+          retention-days: 30

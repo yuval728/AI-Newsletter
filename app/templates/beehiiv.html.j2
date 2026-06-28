@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} | {{ newsletter_name }}</title>
+    <meta name="description" content="{{ excerpt or '' }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #1a1a2e;
+            background-color: #ffffff;
+        }
+        .email-wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 1px solid #eaeaea;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #4f46e5;
+            text-decoration: none;
+        }
+        .article-header {
+            padding: 30px 0;
+        }
+        .article-title {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.3;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+        }
+        .article-meta {
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .author-name {
+            font-weight: 600;
+            color: #4f46e5;
+        }
+        .featured-image {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            border-radius: 8px;
+            margin: 24px 0;
+        }
+        .excerpt {
+            font-size: 18px;
+            color: #4b5563;
+            line-height: 1.6;
+            padding: 20px;
+            background: #f9fafb;
+            border-left: 4px solid #4f46e5;
+            border-radius: 0 8px 8px 0;
+            margin: 24px 0;
+        }
+        .article-content {
+            font-size: 16px;
+            line-height: 1.7;
+        }
+        .article-content h1,
+        .article-content h2,
+        .article-content h3 {
+            margin-top: 32px;
+            margin-bottom: 16px;
+            color: #1a1a2e;
+            font-weight: 700;
+        }
+        .article-content h1 { font-size: 26px; }
+        .article-content h2 { font-size: 22px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
+        .article-content h3 { font-size: 18px; }
+        .article-content p { margin-bottom: 16px; }
+        .article-content ul,
+        .article-content ol { margin: 16px 0; padding-left: 24px; }
+        .article-content li { margin-bottom: 8px; }
+        .article-content a {
+            color: #4f46e5;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        .article-content a:hover { color: #3730a3; }
+        .article-content code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 0.9em;
+        }
+        .article-content pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+        .article-content pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+        .article-content blockquote {
+            border-left: 4px solid #4f46e5;
+            padding-left: 16px;
+            margin: 16px 0;
+            color: #6b7280;
+            font-style: italic;
+        }
+        .article-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+        .article-content th,
+        .article-content td {
+            border: 1px solid #e5e7eb;
+            padding: 12px;
+            text-align: left;
+        }
+        .article-content th {
+            background: #f9fafb;
+            font-weight: 600;
+        }
+        .article-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        .article-content hr {
+            border: none;
+            border-top: 1px solid #e5e7eb;
+            margin: 32px 0;
+        }
+        .cta-section {
+            margin-top: 40px;
+            padding: 24px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            border-radius: 12px;
+            text-align: center;
+        }
+        .cta-title {
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .cta-text {
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 16px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #4f46e5;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform 0.2s;
+        }
+        .cta-button:hover { transform: translateY(-2px); }
+        .footer {
+            margin-top: 40px;
+            padding: 24px 0;
+            border-top: 1px solid #eaeaea;
+            text-align: center;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        .footer a { color: #9ca3af; text-decoration: none; }
+        .footer a:hover { color: #4f46e5; }
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 16px 0;
+        }
+        .tag {
+            background: #eef2ff;
+            color: #4f46e5;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <header class="header">
+            <a href="#" class="logo">{{ newsletter_name }}</a>
+        </header>
+
+        {% if featured_image %}
+        <img src="{{ featured_image }}" alt="{{ title }}" class="featured-image">
+        {% endif %}
+
+        <article class="article-header">
+            <h1 class="article-title">{{ title }}</h1>
+            <div class="article-meta">
+                <span class="author-name">{{ author_name }}</span>
+                {% if publish_date %} · {{ publish_date.strftime('%B %d, %Y') }}{% endif %}
+            </div>
+        </article>
+
+        {% if excerpt %}
+        <div class="excerpt">{{ excerpt }}</div>
+        {% endif %}
+
+        <div class="article-content">
+            {{ content | safe }}
+        </div>
+
+        <div class="cta-section">
+            <div class="cta-title">Enjoyed this edition?</div>
+            <div class="cta-text">Subscribe to get the next AI Weekly delivered straight to your inbox.</div>
+            <a href="#" class="cta-button">Subscribe Free</a>
+        </div>
+
+        <footer class="footer">
+            <p>{{ newsletter_name }} — Curated AI insights for builders and founders.</p>
+            <p>
+                <a href="#">Unsubscribe</a> · 
+                <a href="#">Update preferences</a> · 
+                <a href="#">View in browser</a>
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

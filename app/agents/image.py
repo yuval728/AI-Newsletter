@@ -1,0 +1,52 @@
+import logging
+from pathlib import Path
+
+from app.models import ImageAsset
+from app.services.gemini import gemini_service
+from app.services.image import image_service
+
+logger = logging.getLogger(__name__)
+
+
+def load_prompt(name: str) -> str:
+    prompt_path = Path(__file__).parent.parent / "prompts" / name
+    return prompt_path.read_text(encoding="utf-8")
+
+
+class ImageAgent:
+    def __init__(self):
+        self.prompt_template = load_prompt("image.md")
+
+    async def run(self, title: str, summary: str) -> ImageAsset:
+        logger.info("Generating image", title=title)
+
+        prompt = (
+            self.prompt_template
+            .replace("{{title}}", title)
+            .replace("{{summary}}", summary)
+        )
+
+        # Use Gemini to refine the prompt
+        refined_prompt = await gemini_service.generate_text(
+            prompt=prompt,
+            temperature=0.3,
+        )
+
+        # Generate image via Pollinations
+        result = await image_service.generate_image_from_prompt(refined_prompt)
+
+        asset = ImageAsset(
+            file_path=result["file_path"],
+            prompt=refined_prompt,
+            width=result["width"],
+            height=result["height"],
+            size_bytes=result["size_bytes"],
+        )
+
+        logger.info("Image generated", file_path=asset.file_path)
+        return asset
+
+
+async def generate_image(title: str, summary: str) -> ImageAsset:
+    agent = ImageAgent()
+    return await agent.run(title, summary)
