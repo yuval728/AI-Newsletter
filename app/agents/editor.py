@@ -16,7 +16,8 @@ class EditorAgent:
     def __init__(self):
         self.prompt_template = load_prompt("editor.md")
 
-    async def run(self, draft: ArticleDraft) -> ArticleDraft:
+    async def run(self, input_data=None) -> ArticleDraft:
+        draft = input_data.get("previous_result")
         logger.info("Editing article", title=draft.title)
 
         prompt = self.prompt_template.replace("{{draft.markdown}}", draft.markdown)
@@ -32,6 +33,6 @@ class EditorAgent:
         return result
 
 
-async def edit_article(draft: ArticleDraft) -> ArticleDraft:
+async def edit_article(input_data=None) -> ArticleDraft:
     agent = EditorAgent()
-    return await agent.run(draft)
+    return await agent.run(input_data)

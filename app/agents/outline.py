@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 
-from app.models import Outline, Research, Topic
+from app.models import Outline
 from app.services.gemini import gemini_service
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,9 @@ class OutlineAgent:
     def __init__(self):
         self.prompt_template = load_prompt("outline.md")
 
-    async def run(self, topic: Topic, research: Research) -> Outline:
+    async def run(self, input_data=None) -> Outline:
+        topic = input_data.get("topic")
+        research = input_data.get("research")
         logger.info("Creating outline", topic=topic.title)
 
         research_json = research.model_dump_json(indent=2)
@@ -36,6 +38,6 @@ class OutlineAgent:
         return result
 
 
-async def create_outline(topic: Topic, research: Research) -> Outline:
+async def create_outline(input_data=None) -> Outline:
     agent = OutlineAgent()
-    return await agent.run(topic, research)
+    return await agent.run(input_data)

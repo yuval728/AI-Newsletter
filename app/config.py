@@ -1,5 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -16,12 +17,14 @@ class Settings(BaseSettings):
     beehiiv_api_key: str = Field(..., alias="BEEHIIV_API_KEY")
     publication_id: str = Field(..., alias="PUBLICATION_ID")
     pollinations_key: str | None = Field(default=None, alias="POLLINATIONS_KEY")
+    pollinations_base_url: str = Field(default="https://image.pollinations.ai/prompt", alias="POLLINATIONS_BASE_URL")
 
     database_path: Path = Field(default=Path("data/newsletter.db"))
     assets_dir: Path = Field(default=Path("assets"))
     logs_dir: Path = Field(default=Path("logs"))
 
     gemini_model: str = Field(default="gemini-2.5-flash", alias="GEMINI_MODEL")
+    gemini_search_model: str = Field(default="gemini-2.5-flash", alias="GEMINI_SEARCH_MODEL")
     gemini_temperature: float = Field(default=0.7, alias="GEMINI_TEMPERATURE")
     gemini_max_tokens: int = Field(default=8192, alias="GEMINI_MAX_TOKENS")
 
@@ -40,6 +43,13 @@ class Settings(BaseSettings):
 
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
     log_format: str = Field(default="json", alias="LOG_FORMAT")
+
+    # Newsletter metadata
+    newsletter_name: str = Field(default="AI Weekly", alias="NEWSLETTER_NAME")
+    newsletter_from_name: str = Field(default="AI Weekly Team", alias="NEWSLETTER_FROM_NAME")
+    newsletter_from_email: str = Field(default="hello@aiweekly.example.com", alias="NEWSLETTER_FROM_EMAIL")
+    newsletter_subject_prefix: str = Field(default="AI Weekly -", alias="NEWSLETTER_SUBJECT_PREFIX")
+    newsletter_max_articles: int = Field(default=1, alias="NEWSLETTER_MAX_ARTICLES")
 
     @property
     def assets_images_dir(self) -> Path:

@@ -1,6 +1,5 @@
 import logging
 import sys
-from pathlib import Path
 
 from loguru import logger
 
@@ -30,7 +29,7 @@ def setup_logging():
     # File handler
     settings.logs_dir.mkdir(parents=True, exist_ok=True)
     log_file = settings.logs_dir / f"newsletter_{settings.log_level.lower()}_{{time:YYYY-MM-DD}}.log"
-    
+
     logger.add(
         log_file,
         level=settings.log_level,
@@ -56,7 +55,7 @@ def setup_logging():
             logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
     logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
-    
+
     # Reduce noise from libraries
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("google").setLevel(logging.WARNING)

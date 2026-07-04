@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 
-from app.models import ArticleDraft, Outline, Research, Topic
+from app.models import ArticleDraft
 from app.services.gemini import gemini_service
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,10 @@ class WriterAgent:
     def __init__(self):
         self.prompt_template = load_prompt("writer.md")
 
-    async def run(self, topic: Topic, outline: Outline, research: Research) -> ArticleDraft:
+    async def run(self, input_data=None) -> ArticleDraft:
+        topic = input_data.get("topic")
+        outline = input_data.get("outline")
+        research = input_data.get("research")
         logger.info("Writing article", topic=topic.title)
 
         prompt = (
@@ -37,6 +40,6 @@ class WriterAgent:
         return result
 
 
-async def write_article(topic: Topic, outline: Outline, research: Research) -> ArticleDraft:
+async def write_article(input_data=None) -> ArticleDraft:
     agent = WriterAgent()
-    return await agent.run(topic, outline, research)
+    return await agent.run(input_data)

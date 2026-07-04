@@ -1,15 +1,13 @@
 import json
-import logging
-from typing import Any, TypeVar
+from typing import TypeVar
 
 import google.generativeai as genai
 from google.generativeai.types import GenerationConfig, Tool
+from loguru import logger
 from pydantic import BaseModel
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 from app.config import settings
-
-logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
 

@@ -1,9 +1,9 @@
 import logging
 from pathlib import Path
 
-from app.models import AffiliateResult, ArticleDraft
-from app.services.gemini import gemini_service
+from app.models import AffiliateResult
 from app.services.database import get_database
+from app.services.gemini import gemini_service
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,8 @@ class AffiliateAgent:
         self.prompt_template = load_prompt("affiliate.md")
         self.db = get_database()
 
-    async def run(self, draft: ArticleDraft) -> AffiliateResult:
+    async def run(self, input_data=None) -> AffiliateResult:
+        draft = input_data.get("previous_result")
         logger.info("Inserting affiliate links", title=draft.title)
 
         affiliate_links = await self.db.get_affiliate_links()
@@ -42,6 +43,6 @@ class AffiliateAgent:
         return result
 
 
-async def insert_affiliate_links(draft: ArticleDraft) -> AffiliateResult:
+async def insert_affiliate_links(input_data=None) -> AffiliateResult:
     agent = AffiliateAgent()
-    return await agent.run(draft)
+    return await agent.run(input_data)

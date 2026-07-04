@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 
-from app.models import ArticleDraft, SEOData, Topic
+from app.models import SEOData
 from app.services.gemini import gemini_service
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,9 @@ class SEOAgent:
     def __init__(self):
         self.prompt_template = load_prompt("seo.md")
 
-    async def run(self, draft: ArticleDraft, topic: Topic) -> SEOData:
+    async def run(self, input_data=None) -> SEOData:
+        draft = input_data.get("previous_result")
+        topic = input_data.get("topic")
         logger.info("Generating SEO data", title=draft.title)
 
         prompt = (
@@ -35,6 +37,6 @@ class SEOAgent:
         return result
 
 
-async def generate_seo(draft: ArticleDraft, topic: Topic) -> SEOData:
+async def generate_seo(input_data=None) -> SEOData:
     agent = SEOAgent()
-    return await agent.run(draft, topic)
+    return await agent.run(input_data)

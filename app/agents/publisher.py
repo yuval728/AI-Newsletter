@@ -1,5 +1,4 @@
 import logging
-from datetime import datetime
 
 from app.models import PublishResult
 from app.services.beehiiv import beehiiv_service
@@ -14,75 +13,44 @@ class PublisherAgent:
     def __init__(self):
         self.db = get_database()
 
-    async def run(
-        self,
-        title: str,
-        markdown: str,
-        excerpt: str,
-        slug: str,
-        featured_image_path: str | None = None,
-        auto_publish: bool = True,
-    ) -> PublishResult:
-        logger.info("Publishing to Beehiiv", title=title)
+    async def run(self, input_data=None) -> PublishResult:
+        topic = input_data.get("topic")
+        previous_result = input_data.get("previous_result")
+        image = input_data.get("image")
+        logger.info("Publishing to Beehiiv", title=topic.title)
 
         # Convert markdown to HTML
-        html_content = markdown_service.to_html(markdown)
+        html_content = markdown_service.to_html(previous_result.markdown)
 
         # Render full HTML email
+        featured_image_path = image.file_path if image else None
         final_html = html_service.render_article(
-            title=title,
+            title=topic.title,
             content=html_content,
-            excerpt=excerpt,
+            excerpt=previous_result.excerpt,
             featured_image=featured_image_path,
         )
 
-        if auto_publish:
-            # Create draft
-            draft = await beehiiv_service.create_draft(
-                title=title,
-                content=final_html,
-                subtitle=excerpt,
-            )
+        # Create draft
+        draft = await beehiiv_service.create_draft(
+            title=topic.title,
+            content=final_html,
+            subtitle=previous_result.excerpt,
+        )
 
-            # Publish immediately
-            post = await beehiiv_service.publish_post(draft.id)
+        # Publish immediately
+        post = await beehiiv_service.publish_post(draft.id)
 
-            result = PublishResult(
-                post_id=post.id,
-                web_url=post.web_url,
-                status=post.status,
-            )
-        else:
-            # Just create draft
-            draft = await beehiiv_service.create_draft(
-                title=title,
-                content=final_html,
-                subtitle=excerpt,
-            )
-            result = PublishResult(
-                post_id=draft.id,
-                web_url="",
-                status="draft",
-            )
+        result = PublishResult(
+            post_id=post.id,
+            web_url=post.web_url,
+            status=post.status,
+        )
 
         logger.info("Published to Beehiiv", post_id=result.post_id, status=result.status)
         return result
 
 
-async def publish_article(
-    title: str,
-    markdown: str,
-    excerpt: str,
-    slug: str,
-    featured_image_path: str | None = None,
-    auto_publish: bool = True,
-) -> PublishResult:
+async def publish_article(input_data=None) -> PublishResult:
     agent = PublisherAgent()
-    return await agent.run(
-        title=title,
-        markdown=markdown,
-        excerpt=excerpt,
-        slug=slug,
-        featured_image_path=featured_image_path,
-        auto_publish=auto_publish,
-    )
+    return await agent.run(input_data)

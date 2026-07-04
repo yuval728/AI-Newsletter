@@ -1,35 +1,20 @@
-import logging
-import time
-from contextlib import asynccontextmanager
+from loguru import logger
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-
-from app.config import settings
 from app.agents import (
-    discover_topics,
-    rank_topics,
-    research_topic,
     create_outline,
-    write_article,
+    discover_topics,
     edit_article,
+    generate_image,
     generate_seo,
     insert_affiliate_links,
-    generate_image,
     publish_article,
+    rank_topics,
+    research_topic,
+    write_article,
 )
-from app.models import (
-    TopicCandidate,
-    Topic,
-    Research,
-    ArticleDraft,
-    SEOData,
-    AffiliateResult,
-    ImageAsset,
-    PublishResult,
-)
+from app.config import settings
 from app.services.database import get_database
-
-logger = logging.getLogger(__name__)
 
 
 class PipelineStage:
@@ -39,14 +24,14 @@ class PipelineStage:
         self.kwargs = kwargs
 
     async def run(self, input_data=None):
-        stage_logger = logging.getLogger(f"{__name__}.PipelineStage.{self.name}")
+        stage_logger = logger.bind(stage=self.name)
         try:
-            stage_logger.info(f"Starting {self.name}")
+            stage_logger.info("Starting stage")
             result = await self.func(input_data, **self.kwargs)
-            stage_logger.info(f"Completed {self.name}")
+            stage_logger.info("Completed stage")
             return result
         except Exception as e:
-            stage_logger.error(f"Failed {self.name}: {str(e)}", exc_info=True)
+            stage_logger.error("Failed stage", error=str(e))
             raise
 
 
@@ -55,25 +40,18 @@ class NewsletterPipeline:
         self.db = get_database()
         self.run_id: int | None = None
         self.current_stage: str = ""
-        
+
         self.stages = [
             PipelineStage("topic_discovery", discover_topics),
-            PipelineStage("topic_ranking", rank_topics, lambda data: rank_topics(data)),
-            PipelineStage("research", research_topic, lambda data: research_topic(data)),
-            PipelineStage("outline", create_outline, lambda data: create_outline(data["topic"], data["research"])),
-            PipelineStage("writing", write_article, lambda data: write_article(data["topic"], data["outline"], data["research"])),
-            PipelineStage("editing", edit_article, lambda data: edit_article(data["previous_result"])),
-            PipelineStage("seo", generate_seo, lambda data: generate_seo(data["previous_result"], data["topic"])),
-            PipelineStage("affiliate", insert_affiliate_links, lambda data: insert_affiliate_links(data["previous_result"])),
-            PipelineStage("image", generate_image, lambda data: generate_image(data["topic"].title, data["previous_result"].excerpt)),
-            PipelineStage("publishing", publish_article, lambda data: publish_article(
-                data["topic"].title,
-                data["previous_result"].markdown,
-                data["previous_result"].excerpt,
-                data["seo"].slug,
-                data["image"].file_path if data["image"] else None,
-                settings.auto_publish
-            )),
+            PipelineStage("topic_ranking", rank_topics),
+            PipelineStage("research", research_topic),
+            PipelineStage("outline", create_outline),
+            PipelineStage("writing", write_article),
+            PipelineStage("editing", edit_article),
+            PipelineStage("seo", generate_seo),
+            PipelineStage("affiliate", insert_affiliate_links),
+            PipelineStage("image", generate_image),
+            PipelineStage("publishing", publish_article),
         ]
 
     async def save_run_start(self):
@@ -109,7 +87,6 @@ class NewsletterPipeline:
             result = await stage.run(input_data)
             logger.info(f"Stage {stage.name} completed")
 
-            # Extract tokens and cost for logging (priority)
             tokens_used = 0
             cost_usd = 0.0
             if hasattr(result, "tokens_used"):
@@ -126,8 +103,7 @@ class NewsletterPipeline:
             raise
 
     async def run(self) -> dict:
-        stage_logger = logging.getLogger(f"{__name__}.Pipeline.run")
-        stage_logger.info("Starting newsletter pipeline")
+        logger.info("Starting newsletter pipeline")
 
         await self.save_run_start()
 
@@ -180,7 +156,7 @@ class NewsletterPipeline:
                     article_id=None,
                 )
 
-            stage_logger.info("Pipeline completed successfully")
+            logger.info("Pipeline completed successfully")
             return {
                 "run_id": self.run_id,
                 "topic": topic.model_dump(),

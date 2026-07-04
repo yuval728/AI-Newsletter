@@ -1,8 +1,19 @@
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.models import TopicCandidate, Topic, Research, ResearchFact, ResearchQuote, ResearchSource
-from app.models import Outline, OutlineSection, ArticleDraft, SEOData, AffiliateMatch, AffiliateResult, ImageAsset, PublishResult
+import pytest
+
+from app.models import (
+    AffiliateMatch,
+    AffiliateResult,
+    ArticleDraft,
+    ImageAsset,
+    Research,
+    ResearchFact,
+    ResearchQuote,
+    ResearchSource,
+    SEOData,
+    Topic,
+    TopicCandidate,
+)
 
 
 class TestModels:
@@ -100,39 +111,40 @@ class TestMarkdownService:
 class TestDatabase:
     @pytest.mark.asyncio
     async def test_database_init(self):
-        from app.services.database import init_database
-        import tempfile
         import os
-        
+        import tempfile
+        from pathlib import Path
+
+        from app.services.database import Database
+
         with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as f:
             db_path = f.name
-        
+
         try:
-            from app.config import settings
-            settings.database_path = db_path
-            db = await init_database()
+            db = Database(Path(db_path))
+            await db.init()
             assert db is not None
         finally:
             os.unlink(db_path)
 
     @pytest.mark.asyncio
     async def test_create_topic(self):
-        from app.services.database import init_database, get_database
-        import tempfile
         import os
-        
+        import tempfile
+        from pathlib import Path
+
+        from app.services.database import Database
+
         with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as f:
             db_path = f.name
-        
+
         try:
-            from app.config import settings
-            settings.database_path = db_path
-            await init_database()
-            db = get_database()
-            
+            db = Database(Path(db_path))
+            await db.init()
+
             topic_id = await db.create_topic("Test Topic", "Test reason", 85.0)
             assert topic_id > 0
-            
+
             topic = await db.get_topic(topic_id)
             assert topic is not None
             assert topic.title == "Test Topic"
@@ -142,22 +154,22 @@ class TestDatabase:
 
     @pytest.mark.asyncio
     async def test_affiliate_links(self):
-        from app.services.database import init_database, get_database
-        import tempfile
         import os
-        
+        import tempfile
+        from pathlib import Path
+
+        from app.services.database import Database
+
         with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as f:
             db_path = f.name
-        
+
         try:
-            from app.config import settings
-            settings.database_path = db_path
-            await init_database()
-            db = get_database()
-            
+            db = Database(Path(db_path))
+            await db.init()
+
             link_id = await db.create_affiliate_link("Test Tool", "http://test.com", "IDE")
             assert link_id > 0
-            
+
             link = await db.get_affiliate_link("Test Tool")
             assert link is not None
             assert link.tool_name == "Test Tool"
@@ -169,13 +181,12 @@ class TestDatabase:
 class TestGeminiService:
     @pytest.mark.asyncio
     async def test_generate_structured(self):
-        from app.services.gemini import gemini_service
         from pydantic import BaseModel
-        
+
         class TestResponse(BaseModel):
             result: str
             value: int
-        
+
         # This will fail without real API key, but tests the structure
         # In real tests, we'd mock the genai module
         pass
@@ -185,7 +196,7 @@ class TestPipelineIntegration:
     @pytest.mark.asyncio
     async def test_pipeline_structure(self):
         from app.pipeline import NewsletterPipeline
-        
+
         pipeline = NewsletterPipeline()
         assert len(pipeline.stages) == 10
         assert pipeline.stages[0].name == "topic_discovery"

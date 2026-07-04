@@ -17,13 +17,15 @@ class ImageAgent:
     def __init__(self):
         self.prompt_template = load_prompt("image.md")
 
-    async def run(self, title: str, summary: str) -> ImageAsset:
-        logger.info("Generating image", title=title)
+    async def run(self, input_data=None) -> ImageAsset:
+        topic = input_data.get("topic")
+        previous_result = input_data.get("previous_result")
+        logger.info("Generating image", title=topic.title)
 
         prompt = (
             self.prompt_template
-            .replace("{{title}}", title)
-            .replace("{{summary}}", summary)
+            .replace("{{title}}", topic.title)
+            .replace("{{summary}}", previous_result.excerpt)
         )
 
         # Use Gemini to refine the prompt
@@ -47,6 +49,6 @@ class ImageAgent:
         return asset
 
 
-async def generate_image(title: str, summary: str) -> ImageAsset:
+async def generate_image(input_data=None) -> ImageAsset:
     agent = ImageAgent()
-    return await agent.run(title, summary)
+    return await agent.run(input_data)

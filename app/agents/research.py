@@ -1,8 +1,7 @@
-import json
 import logging
 from pathlib import Path
 
-from app.models import Research, ResearchFact, ResearchQuote, ResearchSource, Topic
+from app.models import Research
 from app.services.gemini import gemini_service
 
 logger = logging.getLogger(__name__)
@@ -17,7 +16,8 @@ class ResearchAgent:
     def __init__(self):
         self.prompt_template = load_prompt("research.md")
 
-    async def run(self, topic: Topic) -> Research:
+    async def run(self, input_data=None) -> Research:
+        topic = input_data
         logger.info("Starting research", topic=topic.title)
 
         prompt = self.prompt_template.replace("{{topic.title}}", topic.title).replace(
@@ -41,6 +41,6 @@ class ResearchAgent:
         return result
 
 
-async def research_topic(topic: Topic) -> Research:
+async def research_topic(input_data=None) -> Research:
     agent = ResearchAgent()
-    return await agent.run(topic)
+    return await agent.run(input_data)

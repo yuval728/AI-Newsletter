@@ -1,10 +1,9 @@
 import logging
-from typing import Any
 
-from app.models import TopicCandidate, Topic
+from app.models import Topic, TopicCandidate
 from app.prompts import load_prompt
-from app.services.gemini import gemini_service
 from app.services.database import get_database
+from app.services.gemini import gemini_service
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +12,7 @@ class TopicDiscoveryAgent:
     def __init__(self):
         self.db = get_database()
 
-    async def run(self) -> list[TopicCandidate]:
+    async def run(self, input_data=None) -> list[TopicCandidate]:
         logger.info("Starting topic discovery")
         prompt = load_prompt("topic_discovery.md")
 
@@ -39,7 +38,8 @@ class TopicRankingAgent:
     def __init__(self):
         self.db = get_database()
 
-    async def run(self, candidates: list[TopicCandidate]) -> Topic:
+    async def run(self, input_data=None) -> Topic:
+        candidates = input_data if isinstance(input_data, list) else []
         logger.info("Starting topic ranking", candidate_count=len(candidates))
         prompt = load_prompt("topic_ranking.md")
 
@@ -59,11 +59,11 @@ class TopicRankingAgent:
         return result
 
 
-async def discover_topics() -> list[TopicCandidate]:
+async def discover_topics(input_data=None) -> list[TopicCandidate]:
     agent = TopicDiscoveryAgent()
-    return await agent.run()
+    return await agent.run(input_data)
 
 
-async def rank_topics(candidates: list[TopicCandidate]) -> Topic:
+async def rank_topics(input_data=None) -> Topic:
     agent = TopicRankingAgent()
-    return await agent.run(candidates)
+    return await agent.run(input_data)

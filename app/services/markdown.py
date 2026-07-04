@@ -1,6 +1,5 @@
 import logging
 import re
-from typing import Any
 
 import markdown as md
 from bs4 import BeautifulSoup

@@ -1,7 +1,7 @@
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.models import TopicCandidate, Topic, Research, ArticleDraft, SEOData
+import pytest
+
+from app.models import ArticleDraft, Research, SEOData, Topic, TopicCandidate
 
 
 class TestModels:

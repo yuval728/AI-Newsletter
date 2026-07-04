@@ -1,5 +1,4 @@
 import json
-import logging
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime
@@ -7,11 +6,9 @@ from pathlib import Path
 from typing import Any
 
 import aiosqlite
+from loguru import logger
 
 from app.config import settings
-
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass

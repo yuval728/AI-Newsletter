@@ -1,6 +1,18 @@
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel
-from app.models import Topic, Research, Outline, ArticleDraft, SEOData, AffiliateResult, ImageAsset, PublishResult
+
+if TYPE_CHECKING:
+    from app.models.affiliate import AffiliateResult
+    from app.models.article import ArticleDraft
+    from app.models.image import ImageAsset
+    from app.models.outline import Outline
+    from app.models.publish import PublishResult
+    from app.models.research import Research
+    from app.models.seo import SEOData
+    from app.models.topic import Topic
 
 
 class RunState(BaseModel):

@@ -1,16 +1,12 @@
 import hashlib
-import logging
-import os
-from pathlib import Path
 from typing import Any
 from urllib.parse import quote_plus
 
 import httpx
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from loguru import logger
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 from app.config import settings
-
-logger = logging.getLogger(__name__)
 
 
 class ImageService:
