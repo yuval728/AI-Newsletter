@@ -1,5 +1,5 @@
 from loguru import logger
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
+from tenacity import retry, retry_if_exception, stop_after_attempt, wait_exponential
 
 from app.agents import (
     create_outline,
@@ -15,6 +15,11 @@ from app.agents import (
 )
 from app.config import settings
 from app.services.database import get_database
+
+
+def _is_not_rate_limit(exception: BaseException) -> bool:
+    error_str = str(exception).lower()
+    return "429" not in error_str and "resource_exhausted" not in error_str
 
 
 class PipelineStage:
@@ -77,7 +82,7 @@ class NewsletterPipeline:
     @retry(
         wait=wait_exponential(multiplier=settings.retry_backoff, min=2, max=30),
         stop=stop_after_attempt(settings.max_retries),
-        retry=retry_if_exception_type(Exception),
+        retry=retry_if_exception(_is_not_rate_limit),
         reraise=True,
     )
     async def run_stage(self, stage: PipelineStage, input_data=None):

@@ -1,11 +1,9 @@
-import logging
+from loguru import logger
 
 from app.models import Topic, TopicCandidate
 from app.prompts import load_prompt
 from app.services.database import get_database
 from app.services.gemini import gemini_service
-
-logger = logging.getLogger(__name__)
 
 
 class TopicDiscoveryAgent:

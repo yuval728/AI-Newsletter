@@ -1,11 +1,10 @@
-import logging
 from pathlib import Path
+
+from loguru import logger
 
 from app.models import AffiliateResult
 from app.services.database import get_database
 from app.services.gemini import gemini_service
-
-logger = logging.getLogger(__name__)
 
 
 def load_prompt(name: str) -> str:
@@ -20,9 +19,13 @@ class AffiliateAgent:
 
     async def run(self, input_data=None) -> AffiliateResult:
         draft = input_data.get("previous_result")
-        logger.info("Inserting affiliate links", title=draft.title)
 
         affiliate_links = await self.db.get_affiliate_links()
+        if not affiliate_links:
+            logger.info("No affiliate links found, skipping", title=draft.title)
+            return AffiliateResult(matches=[])
+
+        logger.info("Inserting affiliate links", title=draft.title)
         tools_text = "\n".join(
             [f"- {link.tool_name}: {link.affiliate_url} ({link.category})" for link in affiliate_links]
         )

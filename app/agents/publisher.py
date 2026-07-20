@@ -1,12 +1,10 @@
-import logging
+from loguru import logger
 
 from app.models import PublishResult
 from app.services.beehiiv import beehiiv_service
 from app.services.database import get_database
 from app.services.html import html_service
 from app.services.markdown import markdown_service
-
-logger = logging.getLogger(__name__)
 
 
 class PublisherAgent:

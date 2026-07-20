@@ -1,10 +1,7 @@
-import logging
 import re
 
 import markdown as md
 from bs4 import BeautifulSoup
-
-logger = logging.getLogger(__name__)
 
 
 class MarkdownService:

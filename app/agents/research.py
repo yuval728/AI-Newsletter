@@ -1,10 +1,9 @@
-import logging
 from pathlib import Path
+
+from loguru import logger
 
 from app.models import Research
 from app.services.gemini import gemini_service
-
-logger = logging.getLogger(__name__)
 
 
 def load_prompt(name: str) -> str:

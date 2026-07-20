@@ -1,3 +1,4 @@
+import io
 import logging
 import sys
 
@@ -9,6 +10,12 @@ from app.config import settings
 def setup_logging():
     # Remove default handler
     logger.remove()
+
+    # Force UTF-8 on stdout/stderr for Windows cp1252 terminals
+    if sys.stdout.encoding != "utf-8":
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    if sys.stderr.encoding != "utf-8":
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
     # Console handler with pretty format
     if settings.log_format == "json":
@@ -37,6 +44,7 @@ def setup_logging():
         retention="30 days",
         format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {name}:{function}:{line} | {message}",
         serialize=settings.log_format == "json",
+        encoding="utf-8",
     )
 
     # Intercept standard logging

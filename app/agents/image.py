@@ -1,11 +1,10 @@
-import logging
 from pathlib import Path
+
+from loguru import logger
 
 from app.models import ImageAsset
 from app.services.gemini import gemini_service
 from app.services.image import image_service
-
-logger = logging.getLogger(__name__)
 
 
 def load_prompt(name: str) -> str:
@@ -18,9 +17,10 @@ class ImageAgent:
         self.prompt_template = load_prompt("image.md")
 
     async def run(self, input_data=None) -> ImageAsset:
+        """Generate only the hero/featured image for the newsletter header."""
         topic = input_data.get("topic")
         previous_result = input_data.get("previous_result")
-        logger.info("Generating image", title=topic.title)
+        logger.info("Generating hero image", title=topic.title)
 
         prompt = (
             self.prompt_template
@@ -34,7 +34,7 @@ class ImageAgent:
             temperature=0.3,
         )
 
-        # Generate image via Pollinations
+        # Generate hero image via Pollinations
         result = await image_service.generate_image_from_prompt(refined_prompt)
 
         asset = ImageAsset(
@@ -45,7 +45,7 @@ class ImageAgent:
             size_bytes=result["size_bytes"],
         )
 
-        logger.info("Image generated", file_path=asset.file_path)
+        logger.info("Hero image generated", file_path=asset.file_path)
         return asset
 
 
